@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Birthday Calendar</title>
+<style>
+:root{--bg:#f3f6fb;--card:#fff;--ink:#12274a;--mute:#5d6f8f;--navy:#12315c;--line:#dbe3f0;--acc:#e8590c;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1626;--card:#16233a;--ink:#e6edf9;--mute:#98a8c6;--navy:#1b3a6b;--line:#2a3b58}}
+:root[data-theme="dark"]{--bg:#0e1626;--card:#16233a;--ink:#e6edf9;--mute:#98a8c6;--navy:#1b3a6b;--line:#2a3b58}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif}
+header{background:var(--navy);color:#fff;padding:16px;text-align:center}
+h1{margin:0;font-size:1.6rem;font-family:"Comic Sans MS","Chalkboard SE","Trebuchet MS",sans-serif}
+header p{margin:4px 0 0;opacity:.8;font-size:.9rem}
+main{max-width:1100px;margin:0 auto;padding:12px 12px 80px}
+.fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:5;box-shadow:0 4px 12px #0004;padding:12px 20px;border-radius:24px;background:var(--acc)}
+button,.btn{font:inherit;border:0;border-radius:10px;padding:8px 12px;background:var(--navy);color:#fff;cursor:pointer;text-decoration:none;display:inline-block}
+button.g,.btn.g{background:transparent;color:var(--ink);border:1px solid var(--line)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #4c8dff;outline-offset:2px}
+input,select,textarea{font:inherit;padding:8px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);width:100%}
+.banner{border-radius:14px;padding:14px;margin-bottom:12px;background:linear-gradient(135deg,#ffd43b,#ff922b);color:#3b2300;font-weight:700}
+.next{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.stats span{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:5px 12px;font-size:.85rem}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.tools input{flex:1;min-width:150px;width:auto}
+.chips,.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.chips button,.tabs button{background:var(--card);color:var(--ink);border:1px solid var(--line);padding:6px 12px}
+.chips button.on,.tabs button.on{background:var(--navy);color:#fff}
+.card{display:flex;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.av{width:44px;height:44px;border-radius:50%;flex:none;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+.inf{flex:1;min-width:0}.inf b{font-size:1.05rem}.inf small{display:block;color:var(--mute);margin-top:2px}
+.badge{display:inline-block;border-radius:12px;padding:2px 9px;font-size:.78rem;background:var(--line);margin-left:6px}
+.badge.s{background:var(--acc);color:#fff}
+.act{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.act>*{padding:5px 10px;font-size:.85rem}
+.note{font-style:italic;color:var(--mute);margin-top:4px;font-size:.9rem}
+.bar{display:flex;gap:8px;align-items:center;justify-content:center;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.m{border-radius:12px;border:1px solid var(--line);background:var(--card);overflow:hidden}
+.m h3{margin:0;padding:8px;text-align:center;font-size:1.05rem;color:#12274a}
+.d{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;padding:6px;gap:2px;font-size:.85rem}
+.d span{border-radius:50%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.d .h{color:var(--mute);font-size:.72rem;aspect-ratio:auto;cursor:default}
+.d .b{color:#fff;font-weight:700}.d .t{outline:2px solid var(--ink)}
+#dayinfo{text-align:center;margin-top:10px;min-height:1.3em}
+dialog{border:0;border-radius:16px;padding:16px;width:min(440px,94vw);max-height:92vh;overflow:auto;background:var(--card);color:var(--ink)}
+dialog::backdrop{background:#0008}
+.pbar{height:8px;background:var(--line);border-radius:6px;overflow:hidden;margin:4px 0 12px}.pbar i{display:block;height:100%;background:#2f9e44}
+.pr{display:flex;gap:10px;padding:7px 0;border-top:1px solid var(--line)}.pr b{min-width:104px;color:var(--mute);font-weight:600}.pr span{flex:1;word-break:break-word}
+.fr{display:grid;gap:8px;grid-template-columns:1fr 1fr}.fr .w{grid-column:1/-1}
+label{font-size:.82rem;color:var(--mute)}
+.empty{text-align:center;color:var(--mute);padding:24px}
+details{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+</style>
+</head>
+<body>
+<header><h1>🎂 Birthday Calendar</h1><p id="hp">Family • Friends • Special Days</p>
+<button id="pwb" class="g" style="display:none;margin-top:8px;color:#fff;border-color:#fff8">Change password</button> <button id="lo" class="g" style="display:none;margin-top:8px;color:#fff;border-color:#fff8">Logout</button></header>
+<div id="gate" style="max-width:600px;margin:12px auto;padding:0 12px"></div>
+<main id="app" hidden>
+<div id="banner"></div>
+<div id="rem"></div>
+<div class="next" id="next"></div>
+<div class="stats" id="stats"></div>
+<div class="tools">
+<input id="q" type="search" placeholder="Search by name" aria-label="Search">
+<select id="tf" style="width:auto" aria-label="Type"><option value="">All types</option><option>Birthday</option><option>Anniversary</option><option>Event</option></select>
+<button id="add">+ Add Event</button>
+</div>
+<div class="chips" id="chips"></div>
+<div class="tabs" id="tabs"></div>
+<div id="view"></div>
+<details><summary>Reminders and notifications</summary>
+<p><small>Reminders show at the top of the app. Notifications appear when the app is open.</small></p>
+<div class="fr"><div><label>Remind me before</label><select id="sd"><option value="0">Same day only</option><option value="1">1 day</option><option value="3">3 days</option><option value="7">7 days</option><option value="14">14 days</option></select></div>
+<div><label>Wish style</label><select id="st"><option value="Simple">Simple</option><option value="Heartfelt">Heartfelt</option><option value="Funny">Funny</option><option value="Urdu">Roman Urdu</option></select></div></div>
+<div class="act"><button id="nb">Enable notifications</button><a class="btn g" id="sh" target="_blank" rel="noopener">Share upcoming on WhatsApp</a></div>
+<small id="nmsg"></small></details>
+<details id="catsec" style="display:none"><summary>Manage categories (admin only)</summary>
+<p><small>Rename, recolor, add or delete categories. Deleting moves its birthdays to Friends.</small></p>
+<div id="catlist"></div>
+<div class="act"><input id="cn" placeholder="New category, e.g. Cousins" maxlength="20" style="flex:1;width:auto" aria-label="New category name"><input id="cc" type="color" value="#d6336c" style="width:48px;padding:2px" aria-label="Category color"><button id="addcat">Add category</button></div>
+</details>
+<details id="bksec" style="display:none"><summary>Backup and restore (admin only)</summary>
+<p><small>Copy your data and keep it safe, or paste a backup below to restore it.</small></p>
+<textarea id="bk" rows="4" placeholder="Paste backup here"></textarea>
+<div class="act"><button id="cp">Copy backup</button><button id="rs" class="g">Restore from text</button><button id="rst" class="g">Reset to default</button></div>
+<small id="bkmsg"></small>
+</details>
+<button id="fsv" class="fab">Save</button>
+</main>
+
+<dialog id="pvd"><div id="pvb"></div><div class="act"><button id="pvx" class="g">Close</button></div></dialog>
+
+<dialog id="prd"><h2 id="prt" style="margin-top:0">My profile</h2>
+<div style="text-align:center"><div class="av" id="pfa" style="width:88px;height:88px;margin:0 auto 8px;font-size:2rem"></div>
+<input id="pfi" type="file" accept="image/png,image/jpeg,image/webp" style="display:none"><button type="button" id="pfb">Choose photo</button> <button type="button" class="g" id="pfr">Remove photo</button></div>
+<div class="fr">
+<div class="w"><label>Full name *</label><input id="p_n" maxlength="40"></div>
+<div><label>Nickname</label><input id="p_k" maxlength="20"></div>
+<div><label>Gender</label><select id="p_g"><option value="">—</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+<div><label>Birth day</label><input id="p_d" type="number" min="1" max="31"></div>
+<div><label>Birth month</label><select id="p_m"></select></div>
+<div class="w"><label>Birth year</label><input id="p_y" type="number" min="1900" max="2100"></div>
+<div><label>Anniversary day</label><input id="p_ad" type="number" min="1" max="31"></div>
+<div><label>Anniversary month</label><select id="p_am"></select></div>
+<div><label>Anniversary year</label><input id="p_ay" type="number" min="1900" max="2100"></div>
+<div><label>Blood group</label><select id="p_b"></select></div>
+<div class="w"><label>Relation or role (Mother, Friend...)</label><input id="p_r" list="rels" maxlength="20"></div>
+<div class="w"><label>Phone with country code</label><input id="p_p" inputmode="tel" placeholder="923001234567" maxlength="20"></div>
+<div class="w"><label>Email</label><input id="p_e" type="email" maxlength="60"></div>
+<div class="w"><label>City or address</label><input id="p_c" maxlength="80"></div>
+<div class="w"><label>Occupation</label><input id="p_o" maxlength="50"></div>
+<div class="w"><label>About me</label><textarea id="p_a" rows="3" maxlength="300"></textarea></div>
+<div class="w"><label>Social link</label><input id="p_s" maxlength="100"></div>
+<div class="w"><label>Emergency contact (only you and the admin see this)</label><input id="p_em" maxlength="60"></div>
+<div class="w"><label>Gift wishlist</label><input id="p_w" maxlength="120"></div>
+<div class="w"><label style="color:var(--ink)">Privacy: hide from other members</label>
+<label style="color:var(--ink)"><input type="checkbox" id="p_hp" style="width:auto"> Phone</label>
+<label style="color:var(--ink)"><input type="checkbox" id="p_he" style="width:auto"> Email</label>
+<label style="color:var(--ink)"><input type="checkbox" id="p_hc" style="width:auto"> Address</label></div>
+</div>
+<p id="prm"></p>
+<div class="act"><button id="prs">Save profile</button><button type="button" class="g" id="prx">Cancel</button></div></dialog>
+
+<dialog id="pwd"><h2 style="margin-top:0">Change password</h2>
+<label>Current password</label><input id="pc" type="password" autocomplete="current-password">
+<label>New password</label><input id="pn" type="password" autocomplete="new-password">
+<label>Confirm new password</label><input id="pf" type="password" autocomplete="new-password">
+<p id="pwm"></p>
+<div class="act"><button id="pws">Save password</button><button id="pwx" class="g">Cancel</button></div></dialog>
+
+<dialog id="dlg"><form id="f" method="dialog">
+<h2 id="dt" style="margin-top:0">Add birthday or event</h2>
+<div class="fr">
+<div class="w"><label>Name</label><input id="nm" required maxlength="40"></div>
+<div><label>Type</label><select id="ty"><option>Birthday</option></select></div>
+<div><label>Relation</label><input id="rl" list="rels" maxlength="20" placeholder="Mother, Friend..."><datalist id="rels"><option>Mother<option>Father<option>Brother<option>Sister<option>Son<option>Daughter<option>Husband<option>Wife<option>Grandfather<option>Grandmother<option>Uncle<option>Aunt<option>Cousin<option>Friend<option>Colleague<option>Teacher<option>Neighbour</datalist></div>
+<div class="w" id="gw" hidden><label>Visible to group</label><select id="gp"><option>Family</option><option>Friends</option></select></div>
+<div><label>Day</label><input id="dd" type="number" min="1" max="31" required></div>
+<div><label>Month</label><select id="mm"></select></div>
+<div><label>Year, optional (birth or wedding)</label><input id="yy" type="number" min="1900" max="2100"></div>
+<div><label>Category</label><select id="cat"></select></div>
+<div><label>Time (optional)</label><input id="tm" type="time"></div>
+<div><label>Location (optional)</label><input id="lc" maxlength="60"></div>
+<div class="w"><label style="color:var(--ink)"><input type="checkbox" id="rp" style="width:auto"> Repeats every year</label></div>
+<div class="w"><label>WhatsApp number with country code (optional)</label><input id="ph" inputmode="tel" placeholder="923001234567"></div>
+<div class="w"><label>Note or gift idea (optional)</label><input id="nt" maxlength="120"></div>
+</div>
+<div class="act"><button type="submit" id="sbm">Save</button><button type="button" class="g" id="cx">Cancel</button></div>
+</form></dialog>
+
+<script src="firebase-config.js"></script>
+<script>
+(function(){let ok=true;try{localStorage.setItem("_t","1");localStorage.removeItem("_t")}catch(e){ok=false}
+ if(!ok){const m={};const sh={getItem:k=>(k in m?m[k]:null),setItem:(k,v)=>{m[k]=String(v)},removeItem:k=>{delete m[k]}};
+  try{Object.defineProperty(window,"localStorage",{value:sh,configurable:true})}catch(e){}
+  window.__memStore=true}})();
+const MON=["January","February","March","April","May","June","July","August","September","October","November","December"];
+let C={prof:{}};
+function rt(k){return !C.db||C.admin||(C.rights||{})[k]!==0}
+let CATS={Family:"#e8590c",Friends:"#2f7de1",Work:"#1f9d55",Other:"#8b3fd9"};
+try{const c=localStorage.getItem("bdcats");if(c)CATS=JSON.parse(c)}catch(e){}
+function saveCats(){try{localStorage.setItem("bdcats",JSON.stringify(CATS))}catch(e){}if(C.db&&C.admin)C.db.collection("config").doc("cats").set({c:CATS}).catch(()=>{})}
+const DEF=[["Fahad",30,1,"Friends"],["Sir Samiullah",7,2,"Friends"],["Danish Malik",14,3,"Friends"],["Muhammed Waqas",15,9,"Friends"],["Adil",9,10,"Friends"],["Sheeban",11,10,"Friends"],["Tariq",11,11,"Friends"],["Ahrar",23,12,"Friends"]].map((a,i)=>({id:"d"+i,n:a[0],d:a[1],m:a[2],cat:a[3]}));
+let list=DEF.map(x=>({...x})),year=new Date().getFullYear(),tab="up",fcat="All",editId=null,pick=null;
+try{const s=localStorage.getItem("bd2");if(s)list=JSON.parse(s)}catch(e){}
+try{if(!localStorage.getItem("bdfix1")){list.forEach(b=>{if(b.id==="d1"||b.id==="d4")b.cat="Friends"});localStorage.setItem("bd2",JSON.stringify(list));localStorage.setItem("bdfix1","1")}}catch(e){}
+const $=id=>document.getElementById(id);
+window.addEventListener("unhandledrejection",e=>{const d=$("gate");if(d&&!C.started){d.style.color="#c92a2a";d.textContent="Error: "+((e.reason&&e.reason.message)||e.reason)}});
+window.onerror=function(m,u,l){const d=$("gate");if(d&&!C.db){d.style.color="#c92a2a";d.textContent="Error: "+m+" (line "+l+")"}};
+
+function save(){if(C.db){syncCloud();return}try{localStorage.setItem("bd2",JSON.stringify(list))}catch(e){}}
+function syncCloud(){
+ const col=C.db.collection("people");
+ list.forEach(b=>{
+  if(b.virt)return;if(!b.group)b.group=C.admin?"Family":C.group;if(!b.by)b.by=C.uid;
+  const j=JSON.stringify(b);
+  if(C.synced[b.id]!==j&&(C.admin||b.by===C.uid)){C.synced[b.id]=j;col.doc(b.id).set(JSON.parse(j)).catch(()=>{})}});
+ Object.keys(C.synced).forEach(id=>{if(!list.some(b=>b.id===id)){const old=JSON.parse(C.synced[id]);if(C.admin||old.by===C.uid){delete C.synced[id];col.doc(id).delete().catch(()=>{})}}})}
+const T0=()=>{const t=new Date();return new Date(t.getFullYear(),t.getMonth(),t.getDate())};
+function nxt(b){const t=T0();if(b.r===0&&b.y){const e=new Date(b.y,b.m-1,b.d);return{dt:e,diff:Math.round((e-t)/864e5),age:null}}let dt=new Date(t.getFullYear(),b.m-1,b.d);if(dt<t)dt=new Date(t.getFullYear()+1,b.m-1,b.d);return{dt,diff:Math.round((dt-t)/864e5),age:b.y?dt.getFullYear()-b.y:null}}
+function zod(m,d){const z=[["Capricorn",1,19],["Aquarius",2,18],["Pisces",3,20],["Aries",4,19],["Taurus",5,20],["Gemini",6,20],["Cancer",7,22],["Leo",8,22],["Virgo",9,22],["Libra",10,22],["Scorpio",11,21],["Sagittarius",12,21]];for(const[n,mm,dd]of z)if(m<mm||(m===mm&&d<=dd))return n;return"Capricorn"}
+function when(x){return x.diff<0?"Passed":x.diff===0?"Today 🎉":x.diff===1?"Tomorrow":"in "+x.diff+" days"}
+function wish(b){const n=b.n,ty=b.ty||"Birthday";
+ if(ty==="Anniversary")return "Happy Anniversary "+n+"! 💞 May your bond grow stronger every year. Allah aap dono ko hamesha khush rakhe!";
+ if(ty==="Wedding")return "Congratulations "+n+" on your wedding! 💍 May Allah bless you both with love and happiness. Mubarak ho!";
+ if(ty==="Engagement")return "Congratulations "+n+" on your engagement! 💎 Mubarak ho!";
+ if(ty!=="Birthday")return "Best wishes to "+n+" on this special day! 🎉";
+ const T={Simple:"Happy Birthday "+n+"! 🎂🎉 Wishing you a day full of happiness, success and many more beautiful years!",Heartfelt:"Dear "+n+", you make life brighter for everyone around you. Happy Birthday! May this year bring you everything your heart desires. ❤️",Funny:"Happy Birthday "+n+"! 🎂 You’re not getting older, you’re just becoming a classic. Treat zaroor chahiye! 😄",Urdu:"Sali girah mubarak "+n+"! 🎉 Allah aap ko hamesha khush aur salamat rakhe. Aameen!"};
+ return T[S.tpl]||T.Simple}
+function filt(){const q=$("q").value.toLowerCase();return list.filter(b=>(fcat==="All"||b.cat===fcat)&&(b.n+" "+(b.rl||"")).toLowerCase().includes(q)&&(!$("tf").value||(b.ty||"Birthday")===$("tf").value))}
+
+function card(b){
+ const x=nxt(b),c=document.createElement("div");c.className="card";
+ const ty=b.ty||"Birthday",age=x.age!=null?(ty==="Anniversary"?" • "+x.age+" years":ty==="Birthday"?" • turning "+x.age:""):"";
+ c.innerHTML='<div class="av"></div><div class="inf"><b></b><span class="badge"></span><small></small><div class="note"></div><div class="act"></div></div>';
+ const av=c.querySelector(".av");setAv(av,b.n,b.photo,CATS[b.cat]||CATS.Other);
+ c.querySelector("b").textContent=b.n;
+ const bd=c.querySelector(".badge");bd.textContent=when(x);if(x.diff<=7)bd.classList.add("s");
+ c.querySelector("small").textContent=ICON[ty]+" "+b.d+" "+MON[b.m-1]+(b.r===0&&b.y?" "+b.y:"")+age+(ty!=="Birthday"?" • "+ty:"")+(b.rl?" • "+b.rl:"")+" • "+b.cat+(ty==="Birthday"?" • "+zod(b.m,b.d):"")+(C.admin&&b.group?" • "+b.group+" group":"");
+ const nt=c.querySelector(".note");const nl=[b.tm?"🕒 "+b.tm:"",b.lc?"📍 "+b.lc:"",b.nt?"📝 "+b.nt:""].filter(Boolean).join(" • ");if(nl)nt.textContent=nl;else nt.remove();
+ const a=c.querySelector(".act");
+ const w=document.createElement("a");w.className="btn";w.target="_blank";w.rel="noopener";
+ w.href="https://wa.me/"+(b.ph||"").replace(/\D/g,"")+"?text="+encodeURIComponent(wish(b));w.textContent="Send wish";a.appendChild(w);
+ if(b.ph){const t=document.createElement("a");t.className="btn g";t.href="tel:+"+b.ph.replace(/\D/g,"");t.textContent="Call";a.appendChild(t)}
+ const mk=(t,f)=>{const e=document.createElement("button");e.className="g";e.textContent=t;e.onclick=f;a.appendChild(e);return e};
+ const cb=mk("Copy wish",()=>{try{navigator.clipboard.writeText(wish(b));cb.textContent="Copied"}catch(e){cb.textContent="Copy failed"}setTimeout(()=>cb.textContent="Copy wish",1500)});
+ const yr=x.dt.getFullYear(),can=!b.virt&&(!C.db||C.admin||b.by===C.uid);
+ can&&mk(b.w===yr?"✅ Wished":"Mark wished",()=>{b.w=b.w===yr?0:yr;save();render()});
+ can&&mk(b.g?"🎁 Gift ready":"Gift: not yet",()=>{b.g=!b.g;save();render()});
+ can&&rt("edit")&&mk("Edit",()=>openDlg(b));
+ can&&rt("del")&&mk("Delete",()=>{if(confirm("Delete "+b.n+"?")){list=list.filter(z=>z.id!==b.id);save();render()}});
+ b.virt&&mk("View profile",()=>viewProfile(b.pid));
+ b.virt&&(C.admin||b.pid===C.uid)&&mk("Edit profile",()=>openProfile(b.pid));
+ return c}
+
+function cal(){
+ const wrap=document.createElement("div"),t=new Date();
+ wrap.innerHTML='<div class="bar"><button class="g" id="py" aria-label="Previous year">‹</button><strong>'+year+'</strong><button class="g" id="ny" aria-label="Next year">›</button></div>';
+ const g=document.createElement("div");g.className="grid";const hues=[210,340,160,265,185,45,210,350,265,160,25,265];
+ const src=filt();
+ for(let m=0;m<12;m++){
+  const box=document.createElement("div");box.className="m";
+  box.innerHTML='<h3 style="background:hsl('+hues[m]+' 80% 90%)">'+MON[m]+'</h3>';
+  const d=document.createElement("div");d.className="d";
+  ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].forEach(x=>d.insertAdjacentHTML("beforeend",'<span class="h">'+x+'</span>'));
+  const first=new Date(year,m,1).getDay(),days=new Date(year,m+1,0).getDate();
+  for(let i=0;i<first;i++)d.insertAdjacentHTML("beforeend","<span></span>");
+  for(let i=1;i<=days;i++){
+   const hit=src.filter(b=>b.m===m+1&&b.d===i&&(b.r!==0||b.y===year)),sp=document.createElement("span");sp.textContent=i;
+   if(hit.length){sp.className="b";sp.style.background=CATS[hit[0].cat]||CATS.Other}
+   if(t.getFullYear()===year&&t.getMonth()===m&&t.getDate()===i)sp.classList.add("t");
+   sp.onclick=()=>{ if(hit.length)$("dayinfo").textContent="🎂 "+i+" "+MON[m]+": "+hit.map(h=>h.n).join(", ");else{pick={d:i,m:m+1};openDlg()} };
+   d.appendChild(sp)}
+  box.appendChild(d);g.appendChild(box)}
+ wrap.appendChild(g);wrap.insertAdjacentHTML("beforeend",'<div id="dayinfo"></div><p class="empty">Tap an empty date to add a birthday.</p>');
+ setTimeout(()=>{$("py").onclick=()=>{year--;render()};$("ny").onclick=()=>{year++;render()}});
+ return wrap}
+
+function render(){
+ const k=a=>a.x.diff<0?1e5-a.x.diff:a.x.diff;const all=list.map(b=>({b,x:nxt(b)})).sort((a,c)=>k(a)-k(c));
+ const tod=all.filter(a=>a.x.diff===0);
+ $("banner").innerHTML="";
+ if(tod.length){const b=document.createElement("div");b.className="banner";b.textContent="🎉 Today: "+tod.map(a=>a.b.n).join(", ")+"!";$("banner").appendChild(b)}
+ $("next").textContent=all.length?"Next: "+all[tod.length?tod.length%all.length:0].b.n+" — "+when(all[tod.length?tod.length%all.length:0].x):"Add your first birthday to get started.";
+ const due=all.filter(a=>a.x.diff>0&&a.x.diff<=S.days);$("rem").innerHTML="";
+ if(due.length){const e=document.createElement("div");e.className="next";e.textContent="🔔 Coming soon: "+due.map(a=>a.b.n+" ("+when(a.x)+")").join(", ");$("rem").appendChild(e)}
+ shareLink();$("add").hidden=!rt("add");
+ const tm=new Date().getMonth()+1;
+ $("stats").innerHTML="";
+ [["Total",list.length],["This month",list.filter(b=>b.m===tm).length],["Next 30 days",all.filter(a=>a.x.diff>=0&&a.x.diff<=30).length]].concat(Object.keys(CATS).map(k=>[k,list.filter(b=>b.cat===k).length])).forEach(s=>{const e=document.createElement("span");e.textContent=s[0]+": "+s[1];$("stats").appendChild(e)});
+ $("chips").innerHTML="";
+ ["All",...Object.keys(CATS)].forEach(k=>{const e=document.createElement("button");e.textContent=k;if(k===fcat)e.className="on";e.onclick=()=>{fcat=k;render()};$("chips").appendChild(e)});
+ $("tabs").innerHTML="";
+ [["up","Upcoming"],["cal","Year calendar"],["all","By month"]].concat(C.db?[["me","My Profile"],["prf","Profiles"]]:[]).concat(C.admin?[["adm","Admin"]]:[]).forEach(([k,l])=>{const e=document.createElement("button");e.textContent=l;if(k===tab)e.className="on";e.onclick=()=>{tab=k;render()};$("tabs").appendChild(e)});
+ const v=$("view");v.innerHTML="";
+ if(tab==="me"&&C.db){v.appendChild(myProfileView());return}
+ if(tab==="prf"&&C.db){v.appendChild(profilesView());return}
+ if(tab==="adm"&&C.admin){v.appendChild(adminView());return}
+ if(tab==="cal"){v.appendChild(cal());return}
+ const q=$("q").value.toLowerCase(),ok=b=>(fcat==="All"||b.cat===fcat)&&(b.n+" "+(b.rl||"")).toLowerCase().includes(q)&&(!$("tf").value||(b.ty||"Birthday")===$("tf").value);
+ if(tab==="up"){const r=all.filter(a=>ok(a.b));r.forEach(a=>v.appendChild(card(a.b)));if(!r.length)v.innerHTML='<p class="empty">No birthdays found.</p>'}
+ else{let any=false;for(let m=1;m<=12;m++){const r=list.filter(b=>b.m===m&&ok(b)).sort((a,c)=>a.d-c.d);if(!r.length)continue;any=true;const h=document.createElement("h3");h.textContent=MON[m-1];v.appendChild(h);r.forEach(b=>v.appendChild(card(b)))}if(!any)v.innerHTML='<p class="empty">No birthdays found.</p>'}
+}
+
+function openDlg(b){
+ if(!b&&!rt("add"))return;fillCats();editId=b?b.id:null;$("dt").textContent=b?"Edit record":"Add birthday or event";
+ $("nm").value=b?b.n:"";$("dd").value=b?b.d:(pick?pick.d:"");$("mm").value=b?b.m:(pick?pick.m:1);
+ $("yy").value=b&&b.y?b.y:(pick?year:"");$("cat").value=b&&CATS[b.cat]?b.cat:(CATS.Friends?"Friends":Object.keys(CATS)[0]);$("ph").value=b&&b.ph?b.ph:"";$("nt").value=b&&b.nt?b.nt:"";$("ty").value=b&&b.ty?b.ty:"Birthday";$("rl").value=b&&b.rl?b.rl:"";$("tm").value=b&&b.tm?b.tm:"";$("lc").value=b&&b.lc?b.lc:"";$("rp").checked=b?b.r!==0:(TYPES[$("ty").value]||[0,1])[1]===1;$("sbm").textContent=b?"Save changes":"Save";$("gw").hidden=!(C.db&&C.admin);$("gp").value=b&&b.group?b.group:"Family";
+ pick=null;$("dlg").showModal()}
+MON.forEach((m,i)=>$("mm").add(new Option(m,i+1)));
+function fillCats(){const v=$("cat").value;$("cat").innerHTML="";Object.keys(CATS).forEach(k=>$("cat").add(new Option(k,k)));if(CATS[v])$("cat").value=v}
+$("add").onclick=()=>openDlg();$("cx").onclick=()=>$("dlg").close();
+$("q").oninput=render;$("tf").onchange=render;
+$("f").onsubmit=e=>{
+ e.preventDefault();
+ const o={n:$("nm").value.trim(),d:+$("dd").value,m:+$("mm").value,cat:$("cat").value,ph:$("ph").value.trim(),nt:$("nt").value.trim(),ty:$("ty").value,rl:$("rl").value.trim()};
+ o.y=$("yy").value?+$("yy").value:undefined;if(C.db&&C.admin)o.group=$("gp").value;o.r=$("rp").checked?1:0;o.tm=$("tm").value;o.lc=$("lc").value.trim();
+ if(!o.r&&!o.y){alert("Please enter the year for a one-time event.");return}
+ if(!o.n||o.d<1||o.d>new Date(2024,o.m,0).getDate()){alert("Please enter a valid name and date.");return}
+ if(editId){list=list.map(b=>b.id===editId?{...b,...o,id:editId}:b)}else list.push({...o,id:"u"+Date.now()});
+ save();$("dlg").close();render()};
+$("cp").onclick=()=>{const s=JSON.stringify(list.filter(b=>!b.virt));$("bk").value=s;try{navigator.clipboard.writeText(s);$("bkmsg").textContent="Backup copied."}catch(e){$("bkmsg").textContent="Select the text above and copy it."}};
+$("rs").onclick=()=>{try{const a=JSON.parse($("bk").value);if(!Array.isArray(a))throw 0;list=a.filter(b=>b&&b.n&&b.d&&b.m&&!b.virt).map((b,i)=>({...b,id:b.id||"r"+i}));list.forEach(b=>{if(!CATS[b.cat])CATS[b.cat]="#868e96"});saveCats();save();render();renderCats();$("bkmsg").textContent="Restored "+list.length+" birthdays."}catch(e){$("bkmsg").textContent="That backup text is not valid."}};
+$("rst").onclick=()=>{if(confirm("Reset to the default 8 birthdays?")){list=DEF.map(x=>({...x}));save();render()}};
+function renderCats(){
+ const box=$("catlist");box.innerHTML="";
+ Object.keys(CATS).forEach(k=>{
+  const r=document.createElement("div");r.className="card";r.style.alignItems="center";r.style.padding="8px";
+  r.innerHTML='<input type="color" aria-label="Color" style="width:48px;padding:2px;flex:none"><input type="text" maxlength="20" aria-label="Category name" style="flex:1"><span class="badge"></span><button class="g">Delete</button>';
+  const ins=r.querySelectorAll("input"),c=ins[0],n=ins[1];
+  c.value=CATS[k];n.value=k;r.querySelector(".badge").textContent=list.filter(b=>b.cat===k).length;
+  c.onchange=()=>{CATS[k]=c.value;saveCats();render();renderCats()};
+  n.onchange=()=>{const nn=n.value.trim();if(!nn||(nn!==k&&CATS[nn])){alert("Category name must be filled and unique.");n.value=k;return}
+   const o={};Object.keys(CATS).forEach(x=>{o[x===k?nn:x]=CATS[x]});CATS=o;list.forEach(b=>{if(b.cat===k)b.cat=nn});if(fcat===k)fcat=nn;save();saveCats();render();renderCats()};
+  r.querySelector("button").onclick=()=>{
+   if(Object.keys(CATS).length<2){alert("Keep at least one category.");return}
+   if(!confirm("Delete "+k+"? Its birthdays move to another category."))return;
+   delete CATS[k];const fb=CATS.Friends?"Friends":Object.keys(CATS)[0];
+   list.forEach(b=>{if(b.cat===k)b.cat=fb});if(fcat===k)fcat="All";save();saveCats();render();renderCats()};
+  box.appendChild(r)})}
+$("addcat").onclick=()=>{const nn=$("cn").value.trim();if(!nn||CATS[nn]){alert("Enter a new, unique category name.");return}CATS[nn]=$("cc").value;saveCats();$("cn").value="";render();renderCats()};
+const TYPES={Birthday:["🎂",1],Anniversary:["💞",1],Wedding:["💍",0],Engagement:["💎",0],Mehndi:["🌿",0],Walima:["🍽️",0],"Baby Shower":["👶",0],Aqiqah:["🍼",0],Graduation:["🎓",0],Party:["🥳",0],Meeting:["📅",0],Event:["🎉",0]};
+const ICON={};Object.keys(TYPES).forEach(k=>ICON[k]=TYPES[k][0]);
+let S={days:3,tpl:"Simple"};
+try{const z=localStorage.getItem("bdset");if(z)S={...S,...JSON.parse(z)}}catch(e){}
+function saveS(){try{localStorage.setItem("bdset",JSON.stringify(S))}catch(e){}}
+function shareLink(){const up=list.map(b=>({b,x:nxt(b)})).filter(a=>a.x.diff>=0&&a.x.diff<=30).sort((a,c)=>a.x.diff-c.x.diff);
+ const t="📅 Upcoming in the next 30 days:\n"+(up.map(a=>ICON[a.b.ty||"Birthday"]+" "+a.b.n+" – "+a.b.d+" "+MON[a.b.m-1]+" ("+when(a.x)+")").join("\n")||"Nothing yet.");$("sh").href="https://wa.me/?text="+encodeURIComponent(t)}
+function notify(){
+ try{if(!("Notification" in window)||Notification.permission!=="granted")return;
+ const today=T0().toDateString();let last=null;try{last=localStorage.getItem("bdnotif")}catch(e){}
+ if(last===today)return;
+ const due=list.map(b=>({b,x:nxt(b)})).filter(a=>a.x.diff>=0&&a.x.diff<=S.days);if(!due.length)return;
+ new Notification("🎂 Birthday Calendar",{body:due.map(a=>ICON[a.b.ty||"Birthday"]+" "+a.b.n+" – "+when(a.x)).join("\n")});
+ try{localStorage.setItem("bdnotif",today)}catch(e){}}catch(e){}}
+$("nb").onclick=async()=>{
+ if(!("Notification" in window)){$("nmsg").textContent="Notifications are not supported in this view. Open the page in your browser.";return}
+ try{const p=await Notification.requestPermission();$("nmsg").textContent=p==="granted"?"Notifications enabled. They show when the app is open.":"Permission not granted.";notify()}catch(e){$("nmsg").textContent="Notifications are blocked in this view."}};
+$("sd").value=S.days;$("st").value=S.tpl;
+$("sd").onchange=()=>{S.days=+$("sd").value;saveS();render();notify()};$("st").onchange=()=>{S.tpl=$("st").value;saveS()};
+setInterval(notify,36e5);
+try{if(!localStorage.getItem("bdfix2")){list.forEach(b=>{if(b.n.indexOf(" (You)")>-1)b.n=b.n.replace(" (You)","")});save();localStorage.setItem("bdfix2","1")}}catch(e){}
+function gof(id,p){const m=(C.mem||[]).find(x=>x.id===id);return m?m.group:(p&&p.adm?"Admin":null)}
+function canSee(id,p){if(C.admin||id===C.uid)return true;const g=gof(id,p);return g==="Admin"||(!!g&&g===C.group)}
+function safePhoto(p){return typeof p==="string"&&/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/.test(p)?p:""}
+function setAv(el,name,photo,color){const ph=safePhoto(photo);el.textContent=ph?"":(name||"?")[0].toUpperCase();el.style.background=ph?'url("'+ph+'") center/cover':color}
+function virt(){const out=[];
+ Object.keys(C.prof||{}).forEach(id=>{const p=C.prof[id];if(!canSee(id,p))return;
+  const g=gof(id,p)||"Friends",h=p.hide||{},base={virt:1,pid:id,by:id,n:p.name||"Member",cat:g==="Admin"?"Friends":g,group:g,rl:p.rel||"Member",photo:p.photo,ph:(h.phone&&id!==C.uid&&!C.admin)?"":p.phone};
+  if(p.d&&p.m)out.push({...base,id:"pb_"+id,d:p.d,m:p.m,y:p.y,ty:"Birthday"});
+  if(p.ad&&p.am)out.push({...base,id:"pa_"+id,d:p.ad,m:p.am,y:p.ay,ty:"Anniversary"})});
+ return out}
+function merge(){list=(C.recs||[]).concat(virt())}
+function pct(p){const ks=["photo","name","d","phone","email","city","job","about","blood","gender","emer","wish"];return Math.round(ks.filter(k=>p&&p[k]).length/ks.length*100)}
+function mkA(cls,txt,href,blank){const a=document.createElement("a");a.className=cls;a.textContent=txt;a.href=href;if(blank){a.target="_blank";a.rel="noopener"}return a}
+function mkB(txt,f,g){const e=document.createElement("button");e.textContent=txt;if(g)e.className="g";e.onclick=f;return e}
+function profileEl(uid){
+ const p=(C.prof||{})[uid]||{},w=document.createElement("div"),own=C.admin||uid===C.uid,h=p.hide||{},show=k=>own||!h[k];
+ const hd=document.createElement("div");hd.style.textAlign="center";
+ const av=document.createElement("div");av.className="av";av.style.cssText="width:88px;height:88px;margin:0 auto 8px;font-size:2rem";setAv(av,p.name,p.photo,"#2f7de1");
+ const nm=document.createElement("h3");nm.style.margin="4px 0";nm.textContent=p.name||"No profile yet";hd.append(av,nm);
+ if(p.nick){const t=document.createElement("div");t.textContent="“"+p.nick+"”";hd.appendChild(t)}
+ w.appendChild(hd);
+ const rows=[],g=gof(uid,p);if(g)rows.push(["Group",g]);if(p.rel)rows.push(["Relation",p.rel]);
+ if(p.d&&p.m){const x=nxt({d:p.d,m:p.m,y:p.y});rows.push(["Birthday",p.d+" "+MON[p.m-1]+(p.y?" "+p.y:"")+(x.age!=null?" • turning "+x.age:"")+" • "+zod(p.m,p.d)+" • "+when(x)])}
+ if(p.ad&&p.am)rows.push(["Anniversary",p.ad+" "+MON[p.am-1]+(p.ay?" "+p.ay:"")]);
+ if(p.gender)rows.push(["Gender",p.gender]);if(p.blood)rows.push(["Blood group",p.blood]);if(p.job)rows.push(["Occupation",p.job]);
+ if(p.phone&&show("phone"))rows.push(["Phone","+"+p.phone]);if(p.email&&show("email"))rows.push(["Email",p.email]);if(p.city&&show("addr"))rows.push(["Address",p.city]);
+ if(p.emer&&own)rows.push(["Emergency",p.emer]);if(p.social)rows.push(["Link",p.social]);if(p.about)rows.push(["About",p.about]);if(p.wish)rows.push(["Gift wishlist",p.wish]);
+ rows.forEach(([l,v])=>{const r=document.createElement("div");r.className="pr";const a=document.createElement("b"),c=document.createElement("span");a.textContent=l;c.textContent=v;r.append(a,c);w.appendChild(r)});
+ const act=document.createElement("div");act.className="act";
+ if(p.phone&&show("phone")){act.appendChild(mkA("btn","WhatsApp","https://wa.me/"+p.phone,1));act.appendChild(mkA("btn g","Call","tel:+"+p.phone))}
+ if(p.email&&show("email")&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email))act.appendChild(mkA("btn g","Email","mailto:"+p.email));
+ if(own)act.appendChild(mkB("Edit profile",()=>{$("pvd").close();openProfile(uid)},1));
+ w.appendChild(act);return w}
+function viewProfile(uid){const p=(C.prof||{})[uid];if(p&&!canSee(uid,p))return;$("pvb").innerHTML="";$("pvb").appendChild(profileEl(uid));$("pvd").showModal()}
+function myProfileView(){
+ const w=document.createElement("div"),p=(C.prof||{})[C.uid];w.innerHTML="<h3>My Profile</h3>";
+ if(!p){w.insertAdjacentHTML("beforeend",'<p class="empty">You have not created your profile yet. Add your photo, birthday and contact details.</p>');w.appendChild(mkB("Create my profile",()=>openProfile(C.uid)));return w}
+ const n=pct(p);w.insertAdjacentHTML("beforeend","<small>Profile completeness: "+n+"%</small>");
+ const bar=document.createElement("div");bar.className="pbar";const i=document.createElement("i");i.style.width=n+"%";bar.appendChild(i);w.appendChild(bar);
+ w.appendChild(profileEl(C.uid));
+ if(C.local){const a=document.createElement("div");a.className="act";a.appendChild(mkB("Change password",()=>$("pwb").click(),1));w.appendChild(a)}
+ return w}
+function openProfile(uid){
+ if(uid!==C.uid&&!C.admin)return;
+ const p=(C.prof||{})[uid]||{},m=(C.mem||[]).find(x=>x.id===uid);
+ C.pe={uid,photo:safePhoto(p.photo)};
+ $("prt").textContent=uid===C.uid?"My profile":"Edit profile";
+ [["n","name"],["k","nick"],["g","gender"],["d","d"],["m","m"],["y","y"],["ad","ad"],["am","am"],["ay","ay"],["b","blood"],["r","rel"],["p","phone"],["e","email"],["c","city"],["o","job"],["a","about"],["s","social"],["em","emer"],["w","wish"]].forEach(([k,f])=>{const v=p[f];$("p_"+k).value=v==null?"":v});
+ if(!p.name)$("p_n").value=(m&&m.name)||C.uname||"";
+ const h=p.hide||{};$("p_hp").checked=!!h.phone;$("p_he").checked=!!h.email;$("p_hc").checked=!!h.addr;
+ setAv($("pfa"),$("p_n").value,C.pe.photo,"#2f7de1");$("prm").textContent="";$("prd").showModal()}
+function pickPhoto(f){return new Promise((res,rej)=>{
+ if(!/^image\/(png|jpeg|webp)$/.test(f.type)||f.size>8e6)return rej("Use a PNG, JPG or WebP image under 8 MB.");
+ const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const side=Math.min(im.width,im.height),c=document.createElement("canvas");c.width=c.height=Math.min(256,side);c.getContext("2d").drawImage(im,(im.width-side)/2,(im.height-side)/2,side,side,0,0,c.width,c.height);res(c.toDataURL("image/jpeg",0.8))};im.onerror=()=>rej("Could not read that image.");im.src=r.result};r.onerror=()=>rej("Could not read that file.");r.readAsDataURL(f)})}
+async function saveProfile(){
+ const m=t=>{$("prm").textContent=t};
+ if(!C.pe||(C.pe.uid!==C.uid&&!C.admin))return;
+ const g=k=>$("p_"+k).value.trim(),n=k=>{const v=$("p_"+k).value;return v?+v:undefined};
+ const name=g("n");if(!name){m("Please enter a name.");return}
+ const dv=(d,mo,y,l)=>{if(!d&&!mo&&!y)return"";if(!d||!mo)return l+": enter both day and month.";if(d<1||d>new Date(2024,mo,0).getDate())return l+": invalid date.";if(y&&(y<1900||y>new Date().getFullYear()+1))return l+": invalid year.";return""};
+ const e1=dv(n("d"),n("m"),n("y"),"Birthday")||dv(n("ad"),n("am"),n("ay"),"Anniversary");if(e1){m(e1);return}
+ const em=g("e");if(em&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){m("Enter a valid email address.");return}
+ const ph=g("p").replace(/\D/g,"");if(ph&&(ph.length<7||ph.length>15)){m("Phone must be 7 to 15 digits including the country code.");return}
+ const old=(C.prof||{})[C.pe.uid]||{};
+ const o={uid:C.pe.uid,name,nick:g("k"),gender:g("g"),d:n("d"),m:n("m"),y:n("y"),ad:n("ad"),am:n("am"),ay:n("ay"),blood:g("b"),rel:g("r"),phone:ph,email:em,city:g("c"),job:g("o"),about:g("a"),social:g("s"),emer:g("em"),wish:g("w"),photo:C.pe.photo||"",hide:{phone:$("p_hp").checked,email:$("p_he").checked,addr:$("p_hc").checked},adm:C.pe.uid===C.uid?(C.admin?1:0):(old.adm?1:0),group:C.pe.uid===C.uid?(C.admin?"All":C.group):(((C.mem||[]).find(x=>x.id===C.pe.uid)||{}).group||"All"),upd:Date.now()};
+ try{await C.db.collection("profiles").doc(C.pe.uid).set(JSON.parse(JSON.stringify(o)));audit("Profile saved: "+name);$("prd").close()}catch(e){m("Could not save. Please try again.")}}
+["p_m","p_am"].forEach(id=>{$(id).add(new Option("—",""));MON.forEach((m,i)=>$(id).add(new Option(m,i+1)))});
+["","A+","A-","B+","B-","AB+","AB-","O+","O-"].forEach(v=>$("p_b").add(new Option(v||"—",v)));
+$("pfb").onclick=()=>$("pfi").click();
+$("pfi").onchange=async()=>{const f=$("pfi").files[0];if(!f)return;try{C.pe.photo=await pickPhoto(f);setAv($("pfa"),$("p_n").value,C.pe.photo,"#2f7de1");$("prm").textContent=""}catch(e){$("prm").textContent=String(e)}$("pfi").value=""};
+$("pfr").onclick=()=>{if(C.pe){C.pe.photo="";setAv($("pfa"),$("p_n").value,"","#2f7de1")}};
+$("prx").onclick=()=>$("prd").close();$("prs").onclick=saveProfile;$("pvx").onclick=()=>$("pvd").close();
+function profilesView(){
+ const w=document.createElement("div");w.innerHTML="<h3>Profiles</h3>";
+ if(!rt("profiles")){w.insertAdjacentHTML("beforeend",'<p class="empty">The admin has not given you permission to view profiles.</p>');return w}
+ w.insertAdjacentHTML("beforeend","<p><small>"+(C.admin?"You can see everyone.":"You can see only "+C.group+" members.")+" You can edit only your own profile.</small></p>");
+ const q=$("q").value.toLowerCase(),ids=new Set(Object.keys(C.prof||{}));(C.mem||[]).forEach(m=>ids.add(m.id));
+ const rows=[...ids].map(id=>{const p=(C.prof||{})[id]||{},m=(C.mem||[]).find(x=>x.id===id);return{id,p,name:p.name||(m&&m.name)||""}}).filter(r=>r.name&&canSee(r.id,r.p)&&r.name.toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name));
+ if(!rows.length)w.insertAdjacentHTML("beforeend",'<p class="empty">No profiles found.</p>');
+ rows.forEach(r=>{const c=document.createElement("div");c.className="card";c.innerHTML='<div class="av"></div><div class="inf"><b></b><small></small><div class="act"></div></div>';
+  setAv(c.querySelector(".av"),r.name,r.p.photo,"#2f7de1");c.querySelector("b").textContent=r.name+(r.id===C.uid?" (you)":"");
+  c.querySelector("small").textContent=[gof(r.id,r.p),r.p.rel,r.p.d&&r.p.m?"🎂 "+r.p.d+" "+MON[r.p.m-1]:"",r.p.job].filter(Boolean).join(" • ")||"No profile details yet";
+  const a=c.querySelector(".act");a.appendChild(mkB("View",()=>viewProfile(r.id),1));if(C.admin||r.id===C.uid)a.appendChild(mkB("Edit profile",()=>openProfile(r.id),1));
+  w.appendChild(c)});
+ return w}
+function adminView(){
+ const w=document.createElement("div");
+ w.innerHTML='<h3>Admin dashboard</h3><p><small>Manage every user: approve sign-ups, edit profiles, set Family or Friends, give rights, disable, reset passwords or delete.</small></p><h4>Pending sign-ups</h4><div id="pend"></div><h4>Users</h4><div id="mems"></div><h4>Add a user</h4><div id="adu"></div><h4>Overview</h4><p id="cnt"></p><h4>Recent activity</h4><div id="log"><small>Loading…</small></div>';
+ const ok=p=>p.catch(()=>alert("Action not allowed or failed."));
+ const row=(t,bs,m)=>{const r=document.createElement("div");r.className="card";r.style.alignItems="center";r.style.padding="8px";r.style.flexWrap="wrap";
+  if(m){const a=document.createElement("div");a.className="av";a.style.cssText="width:36px;height:36px;font-size:.95rem";setAv(a,t,m.photo,"#2f7de1");r.appendChild(a)}
+  const s=document.createElement("span");s.style.flex="1";s.textContent=t;r.appendChild(s);bs.filter(Boolean).forEach(x=>r.appendChild(x));return r};
+ const mem=(C.mem||[]).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||"")),req=(C.req||[]).filter(r=>!mem.some(m=>m.id===r.id)&&r.status!=="declined");
+ const pe=w.querySelector("#pend"),me=w.querySelector("#mems");
+ if(!req.length)pe.innerHTML='<p class="empty">No pending requests.</p>';
+ req.forEach(r=>pe.appendChild(row(r.name+" wants to join "+r.group,[mkB("Approve",()=>{ok(C.db.collection("members").doc(r.id).set({name:r.name,group:r.group,email:r.email||"",at:Date.now()}));audit("Approved "+r.name)}),mkB("Decline",()=>{ok(C.db.collection("requests").doc(r.id).set({name:r.name,group:r.group,email:r.email||"",at:r.at||Date.now(),status:"declined"}));audit("Declined "+r.name)},1)])));
+ if(!mem.length)me.innerHTML='<p class="empty">No users yet.</p>';
+ mem.forEach(m=>{const p=(C.prof||{})[m.id]||{},nm=p.name||m.name;
+  const msave=ch=>ok(C.db.collection("members").doc(m.id).set({name:m.name,group:m.group,rights:m.rights||{},at:m.at||Date.now(),disabled:m.disabled?1:0,email:m.email||"",...ch}));
+  const sel=document.createElement("select");sel.style.width="auto";["Family","Friends"].forEach(g=>sel.add(new Option(g,g)));sel.value=m.group;
+  sel.onchange=()=>{msave({group:sel.value});if(p.name)ok(C.db.collection("profiles").doc(m.id).set(JSON.parse(JSON.stringify({...p,group:sel.value}))));list.forEach(b=>{if(b.by===m.id&&!b.virt)b.group=sel.value});save();audit("Moved "+nm+" to "+sel.value)};
+  const cb=(k,l)=>{const lb=document.createElement("label");lb.style.cssText="font-size:.8rem;color:var(--ink);white-space:nowrap";const i=document.createElement("input");i.type="checkbox";i.style.width="auto";i.checked=(m.rights||{})[k]!==0;i.onchange=()=>msave({rights:{...(m.rights||{}),[k]:i.checked?1:0}});lb.append(i," "+l);return lb};
+  me.appendChild(row(nm+(m.disabled?" (disabled)":""),[sel,cb("add","Add"),cb("edit","Edit"),cb("del","Delete"),cb("profiles","View profiles"),
+   mkB("View",()=>viewProfile(m.id),1),mkB("Edit profile",()=>openProfile(m.id),1),
+   mkB(m.disabled?"Enable":"Disable",async()=>{const d=!m.disabled;await msave({disabled:d?1:0});if(C.local){const us=getUsers(),x=us.find(z=>z.id===m.id);if(x){x.disabled=d;setUsers(us)}}audit((d?"Disabled ":"Enabled ")+nm)},1),
+   C.fb&&m.email&&mkB("Send reset email",()=>{C.fb.auth.sendPasswordResetEmail(m.email).then(()=>alert("Reset email sent to "+m.email)).catch(()=>alert("Could not send the email."))},1),
+   C.local&&mkB("Reset password",async()=>{const pw=prompt("New password for "+nm+" (8+ characters, letters and numbers):");if(!pw)return;const us=getUsers(),x=us.find(z=>z.id===m.id);if(!x){alert("No login account for this user.");return}const e=pwBad(pw,x.u);if(e){alert("Password: "+e);return}x.salt=rnd();x.hash=await hashPw(pw,x.salt);setUsers(us);audit("Reset password for "+nm);alert("Password changed.")},1),
+   mkB("Delete",async()=>{if(!confirm("Delete "+nm+" and all of their data?"))return;await ok(C.db.collection("members").doc(m.id).delete());ok(C.db.collection("requests").doc(m.id).delete());ok(C.db.collection("profiles").doc(m.id).delete());list=list.filter(b=>b.by!==m.id);save();if(C.local)setUsers(getUsers().filter(z=>z.id!==m.id));audit("Deleted user "+nm)},1)],p))});
+ const au=w.querySelector("#adu");
+ au.innerHTML='<div class="fr"><div class="w"><label>Name</label><input id="an2" maxlength="30"></div>'+(C.local?'<div><label>Username</label><input id="au2" maxlength="20"></div><div><label>Temporary password</label><input id="ap2" type="password" maxlength="40"></div>':"")+'<div class="w"><label>Group</label><select id="ag2"><option>Family</option><option>Friends</option></select></div></div><div class="act"><button id="aub">Add user</button></div><p id="aum"></p>'+(C.local?"":'<p><small>In shared mode added users are profile-only members (no password sign-in).</small></p>');
+ au.querySelector("#aub").onclick=async()=>{const q=x=>au.querySelector(x),m=t=>{q("#aum").textContent=t},nm=q("#an2").value.trim();
+  if(!nm){m("Enter a name.");return}
+  const id=(C.local?"u":"m")+rnd(),grp=q("#ag2").value;
+  if(C.local){const un=q("#au2").value.trim().toLowerCase(),pw=q("#ap2").value,us=getUsers();
+   if(un.length<3){m("Username needs at least 3 characters.");return}if(us.some(z=>z.u===un)){m("That username already exists.");return}
+   const e=pwBad(pw,un);if(e){m("Password: "+e);return}
+   const salt=rnd();us.push({id,u:un,name:nm,salt,hash:await hashPw(pw,salt),admin:false});setUsers(us)}
+  await ok(C.db.collection("members").doc(id).set({name:nm,group:grp,at:Date.now()}));
+  await ok(C.db.collection("profiles").doc(id).set({uid:id,name:nm,upd:Date.now()}));
+  audit("Added user "+nm);m("User added.")};
+ if(C.fb)au.innerHTML="<p><small>People register themselves on the sign-in screen from anywhere. You approve or decline them above.</small></p>";
+ const n=g=>mem.filter(x=>x.group===g).length;
+ w.querySelector("#cnt").textContent="Family users: "+n("Family")+" • Friends users: "+n("Friends")+" • Profiles: "+Object.keys(C.prof||{}).length+" • Records: "+(C.recs||[]).length;
+ C.db.collection("audit").get().then(q=>{const r=q.docs.map(d=>d.data()).sort((a,b)=>b.t-a.t).slice(0,30),lg=w.querySelector("#log");lg.innerHTML="";if(!r.length)lg.innerHTML="<small>No activity yet.</small>";r.forEach(x=>{const d=document.createElement("div");d.style.fontSize=".82rem";d.textContent=new Date(x.t).toLocaleString()+" • "+x.u+" • "+x.e;lg.appendChild(d)})}).catch(()=>{});
+ return w}
+const rnd=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36);
+async function hash(t){try{const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}catch(e){let h=5381;for(const ch of t)h=((h<<5)+h+ch.charCodeAt(0))|0;return"w"+h}}
+const getUsers=()=>{try{return JSON.parse(localStorage.getItem("bdl_users")||"[]")}catch(e){return[]}};
+const setUsers=u=>{try{localStorage.setItem("bdl_users",JSON.stringify(u))}catch(e){}};
+async function hashPw(pw,salt){try{const k=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveBits"]);const b=await crypto.subtle.deriveBits({name:"PBKDF2",salt:new TextEncoder().encode(salt),iterations:150000,hash:"SHA-256"},k,256);return"p2$"+[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}catch(e){return hash(salt+pw)}}
+async function chk(x,pw){return x.hash.indexOf("p2$")===0?x.hash===await hashPw(pw,x.salt):x.hash===await hash(x.salt+pw)}
+function pwBad(pw,un){return pw.length<8?"use at least 8 characters.":(!/[A-Za-z]/.test(pw)||!/\d/.test(pw))?"use both letters and numbers.":(un&&pw.toLowerCase()===un)?"must not be the same as the username.":""}
+function setSess(id){try{localStorage.setItem("bdsess",JSON.stringify({id,t:Date.now()}))}catch(e){}}
+function getSess(){try{const s=JSON.parse(localStorage.getItem("bdsess")||"null");if(s&&s.id&&Date.now()-s.t<6048e5)return s.id}catch(e){}return null}
+const failGet=()=>{try{return JSON.parse(localStorage.getItem("bdl_fail")||"{}")}catch(e){return{}}};
+const failSet=o=>{try{localStorage.setItem("bdl_fail",JSON.stringify(o))}catch(e){}};
+function failLeft(u){const f=failGet()[u];return f&&f.t>Date.now()?Math.ceil((f.t-Date.now())/1000):0}
+function failAdd(u){const o=failGet(),f=o[u]||{n:0,t:0};f.n++;if(f.n>=5)f.t=Date.now()+30000*Math.min(f.n-4,20);o[u]=f;failSet(o)}
+function failClear(u){const o=failGet();delete o[u];failSet(o)}
+function audit(e,who){try{(C.db||LDB).collection("audit").doc(Date.now()+"_"+rnd().slice(0,4)).set({t:Date.now(),u:who||C.uname||"?",e}).catch(()=>{})}catch(x){}}
+const LDB=(()=>{
+ const L={},rd=c=>{try{return JSON.parse(localStorage.getItem("bdl_"+c)||"{}")}catch(e){return{}}},wr=(c,o)=>{try{localStorage.setItem("bdl_"+c,JSON.stringify(o))}catch(e){}};
+ const sc=c=>{const o=rd(c);return{docs:Object.keys(o).map(id=>({id,exists:true,data:()=>o[id]}))}};
+ const sd=(c,id)=>{const o=rd(c)[id];return{id,exists:!!o,data:()=>o}};
+ const fire=(c,id)=>{(L[c]||[]).forEach(f=>{try{f(sc(c))}catch(e){}});(L[c+"/"+id]||[]).forEach(f=>{try{f(sd(c,id))}catch(e){}})};
+ return{collection(c){return{
+  get:async()=>sc(c),
+  onSnapshot(f){(L[c]=L[c]||[]).push(f);setTimeout(()=>f(sc(c)),0);return()=>{}},
+  doc(id){return{
+   get:async()=>sd(c,id),
+   set:async d=>{const o=rd(c);o[id]=JSON.parse(JSON.stringify(d));wr(c,o);fire(c,id)},
+   delete:async()=>{const o=rd(c);delete o[id];wr(c,o);fire(c,id)},
+   onSnapshot(f){const k=c+"/"+id;(L[k]=L[k]||[]).push(f);setTimeout(()=>f(sd(c,id)),0);return()=>{}}}}}}}})();
+async function seedLocal(a){let l=null;try{l=JSON.parse(localStorage.getItem("bd2")||"null")}catch(e){}l=l||DEF;
+ for(const b of l)await LDB.collection("people").doc(b.id||"s"+rnd()).set({...b,group:b.cat==="Family"?"Family":"Friends",by:a.id})}
+async function ensureAdmin(){try{await ensureAdmin0()}catch(e){}}
+async function ensureAdmin0(){
+ const us=getUsers();
+ if(!us.some(z=>z.u==="admin")){const salt=rnd(),a={id:"u_admin",u:"admin",name:"Admin",salt,hash:await hashPw("admin",salt),admin:true,def:true};us.push(a);setUsers(us);
+  let has=null;try{has=localStorage.getItem("bdl_people")}catch(e){}if(!has)await seedLocal(a)}}
+function localAuth(p){return new Promise(async res=>{
+ await ensureAdmin();
+ const us0=getUsers();const sid=getSess();
+ const ex=us0.find(z=>z.id===sid&&!z.disabled);if(ex){res(ex);return}
+ let reg=false;const dflt=us0.some(z=>z.u==="admin"&&z.def);
+ $("gate").innerHTML='<div class="next"><h3 style="margin-top:0">Sign in</h3>'+(dflt?"<p><small>Admin login: username <b>admin</b>, password <b>admin</b>. You will be asked to change it after signing in.</small></p>":"")+'<div class="tabs"><button type="button" id="tl">Login</button><button type="button" id="tr">Register</button></div><label>Username</label><input id="au" autocomplete="username" maxlength="20"><label>Password</label><input id="ap" type="password" autocomplete="current-password" maxlength="40"><div id="rf"><label>Your name</label><input id="an" maxlength="30"><label>I am joining as</label><select id="ag"><option>Family</option><option>Friends</option></select></div><div class="act" id="aa"><button id="asb">Login</button></div><p id="am"></p><small style="color:var(--mute)">Version 4'+(window.__memStore?' • Storage is blocked, data will not be saved after closing':'')+'</small></div>';
+ const upd=()=>{$("rf").style.display=reg?"":"none";$("asb").textContent=reg?"Register":"Login";$("tl").className=reg?"":"on";$("tr").className=reg?"on":""};
+ $("tl").onclick=()=>{reg=false;upd()};$("tr").onclick=()=>{reg=true;upd()};upd();
+ p.then(c=>{if(c){const b=document.createElement("button");b.className="g";b.textContent="Sign in with Claude account";b.onclick=()=>res({cloud:c});$("aa").appendChild(b)}});
+ $("asb").onclick=async()=>{
+  const m=t=>{$("am").textContent=t},u=$("au").value.trim().toLowerCase(),pw=$("ap").value,us=getUsers();
+  if(u.length<3||!pw){m("Enter your username and password.");return}
+  if(reg){const pe=pwBad(pw,u);if(pe){m("Password: "+pe);return}}
+  if(reg){
+   if(us.some(z=>z.u===u)){m("That username is already taken.");return}
+   const nm=$("an").value.trim()||u,salt=rnd();
+   const nu={id:"u"+rnd(),u,name:nm,salt,hash:await hashPw(pw,salt),admin:false};
+   us.push(nu);setUsers(us);
+   await LDB.collection("requests").doc(nu.id).set({name:nm,group:$("ag").value,at:Date.now()});
+   setSess(nu.id);audit("Registered: "+u,u);
+   res(nu)
+  }else{
+   const lk=failLeft(u);if(lk>0){m("Too many failed attempts. Try again in "+lk+" seconds.");return}
+   const x=us.find(z=>z.u===u);
+   if(!x||x.disabled||!(await chk(x,pw))){failAdd(u);audit("Failed login: "+u,u);m(x&&x.disabled?"This account is disabled.":"Wrong username or password.");return}
+   if(x.hash.indexOf("p2$")!==0){const nsalt=rnd(),nh=await hashPw(pw,nsalt),uu=getUsers(),y=uu.find(z=>z.id===x.id);if(y){y.salt=nsalt;y.hash=nh;setUsers(uu)}}
+   failClear(u);
+   setSess(x.id);
+   res(x)}}})}
+async function localBoot(p){
+ C.synced={};
+ const a=await localAuth(p);
+ if(a.cloud){const c=a.cloud;C.db=c.db;C.uid=c.me.id;C.uname=c.me.name;C.admin=c.me.canEdit||c.me.isOwner;enter(c.me,c.db);return}
+ C.local=true;C.db=LDB;C.uid=a.id;C.uname=a.u;C.admin=!!a.admin;
+ $("lo").style.display="";$("pwb").style.display="";
+ $("lo").onclick=()=>{try{localStorage.removeItem("bdsess")}catch(e){}location.reload()};
+ enter({id:a.id,name:a.name},LDB);
+ C.must=!!a.def;if(a.def){$("pwx").style.display="none";$("pwb").click()}
+ audit("Logged in");
+ C.last=Date.now();["click","keydown","touchstart"].forEach(ev=>document.addEventListener(ev,()=>{C.last=Date.now()}));
+ setInterval(()=>{if(Date.now()-C.last>6e5){try{localStorage.removeItem("bdsess")}catch(e){}location.reload()}},30000)}
+$("pwb").onclick=()=>{$("pc").value="";$("pn").value="";$("pf").value="";$("pwm").textContent="";$("pwd").showModal()};
+$("pwx").onclick=()=>$("pwd").close();$("pwd").oncancel=e=>{if(C.must)e.preventDefault()};
+$("pws").onclick=async()=>{
+ const m=t=>{$("pwm").textContent=t},us=getUsers(),x=us.find(z=>z.id===C.uid),nw=$("pn").value;
+ if(C.fb){await fbChangePw(m,nw);return}
+ if(!x||!(await chk(x,$("pc").value))){m("Current password is wrong.");return}
+ const pe=pwBad(nw,x.u);if(pe){m("New password: "+pe);return}
+ if(nw!==$("pf").value){m("The new passwords do not match.");return}
+ if(nw===$("pc").value){m("Choose a different password.");return}
+ x.salt=rnd();x.hash=await hashPw(nw,x.salt);delete x.def;setUsers(us);C.must=false;$("pwx").style.display="";audit("Password changed");
+ m("Password changed.");setTimeout(()=>$("pwd").close(),900)};
+const FB_URLS=["https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js","https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js","https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"];
+function loadScript(u){return new Promise((res,rej)=>{const e=document.createElement("script");e.src=u;e.onload=res;e.onerror=()=>rej(new Error("load "+u));document.head.appendChild(e)})}
+function fbMsg(e){const c=(e&&e.code)||"";return c==="auth/email-already-in-use"?"That email is already registered.":c==="auth/invalid-email"?"Enter a valid email address.":c==="auth/weak-password"?"Choose a stronger password.":(c==="auth/user-not-found"||c==="auth/wrong-password"||c==="auth/invalid-credential"||c==="auth/invalid-login-credentials")?"Wrong email or password.":c==="auth/network-request-failed"?"No internet connection.":c==="auth/too-many-requests"?"Too many attempts. Please try again later.":c==="auth/requires-recent-login"?"Please log out and log in again, then retry.":"Something went wrong. Please try again."}
+function makeFDB(fs){
+ const wrap=s=>({docs:s.docs.map(d=>({id:d.id,exists:true,data:()=>d.data()}))});
+ const flt=c=>{let q=fs.collection(c);if(!C.admin){if(c==="people"||c==="members")q=q.where("group","==",C.group);if(c==="profiles")q=q.where("group","in",[C.group,"All"])}return q};
+ return{collection(c){return{
+  get:async()=>wrap(await flt(c).get()),
+  onSnapshot(f,e){return flt(c).onSnapshot(s=>f(wrap(s)),x=>e&&e(x))},
+  doc(id){const r=fs.collection(c).doc(id);return{
+   get:async()=>{const s=await r.get();return{id,exists:s.exists,data:()=>s.data()}},
+   set:d=>r.set(d),delete:()=>r.delete(),
+   onSnapshot(f,e){return r.onSnapshot(s=>f({id,exists:s.exists,data:()=>s.data()}),x=>e&&e(x))}}}}}}}
+function fbAuth(auth,FDB){return new Promise(res=>{
+ let reg=false;
+ $("gate").innerHTML='<div class="next"><h3 style="margin-top:0">Sign in</h3><p><small>Connected to the family database. New here? Register, then wait for the admin to approve you.</small></p><div class="tabs"><button type="button" id="tl">Login</button><button type="button" id="tr">Register</button></div><label>Email</label><input id="au" type="email" autocomplete="email" maxlength="60"><label>Password</label><input id="ap" type="password" autocomplete="current-password" maxlength="40"><div id="rf"><label>Your name</label><input id="an" maxlength="30"><label>I am joining as</label><select id="ag"><option>Family</option><option>Friends</option></select></div><div class="act"><button id="asb">Login</button><button type="button" class="g" id="afp">Forgot password</button></div><p id="am"></p><small style="color:var(--mute)">Version 5 • Connected</small></div>';
+ const m=t=>{$("am").textContent=t};
+ const upd=()=>{$("rf").style.display=reg?"":"none";$("asb").textContent=reg?"Register":"Login";$("tl").className=reg?"":"on";$("tr").className=reg?"on":""};
+ $("tl").onclick=()=>{reg=false;upd()};$("tr").onclick=()=>{reg=true;upd()};upd();
+ $("afp").onclick=async()=>{const e=$("au").value.trim();if(!e){m("Enter your email first.");return}try{await auth.sendPasswordResetEmail(e)}catch(x){}m("If this email is registered, a reset link has been sent.")};
+ $("asb").onclick=async()=>{
+  const e=$("au").value.trim().toLowerCase(),pw=$("ap").value;
+  if(!e||!pw){m("Enter your email and password.");return}
+  const lk=failLeft(e);if(lk>0){m("Too many failed attempts. Try again in "+lk+" seconds.");return}
+  if(reg){
+   const pe=pwBad(pw,e);if(pe){m("Password: "+pe);return}
+   const nm=$("an").value.trim()||e.split("@")[0];
+   try{const c=await auth.createUserWithEmailAndPassword(e,pw);try{await c.user.updateProfile({displayName:nm})}catch(x){}
+    await FDB.collection("requests").doc(c.user.uid).set({name:nm,group:$("ag").value,email:e,at:Date.now()});res(c.user)}catch(x){m(fbMsg(x))}
+  }else{
+   try{const c=await auth.signInWithEmailAndPassword(e,pw);failClear(e);res(c.user)}catch(x){failAdd(e);m(fbMsg(x))}}}})}
+async function fbBoot(){
+ const g=$("gate");g.textContent="Connecting…";
+ try{for(const u of FB_URLS)await loadScript(u)}catch(e){g.innerHTML='<div class="next">Could not reach the server. Check your internet connection.<div class="act"><button id="rty">Try again</button></div></div>';$("rty").onclick=()=>location.reload();return}
+ firebase.initializeApp(window.FIREBASE_CONFIG);
+ const auth=firebase.auth(),fs=firebase.firestore(),FDB=makeFDB(fs);C.fb={auth,fs};
+ let u=await new Promise(r=>{const off=auth.onAuthStateChanged(x=>{off();r(x)})});
+ if(!u)u=await fbAuth(auth,FDB);
+ C.db=FDB;C.synced={};C.uid=u.uid;C.uname=u.email;
+ let ad=false;try{ad=(await fs.collection("admins").doc(u.uid).get()).exists}catch(e){}
+ C.admin=ad;
+ $("lo").style.display="";$("pwb").style.display="";
+ $("lo").onclick=()=>{auth.signOut().then(()=>location.reload())};
+ C.last=Date.now();["click","keydown","touchstart"].forEach(ev=>document.addEventListener(ev,()=>{C.last=Date.now()}));
+ setInterval(()=>{if(Date.now()-C.last>6e5)auth.signOut().then(()=>location.reload())},30000);
+ audit("Logged in");
+ enter({id:u.uid,name:u.displayName||u.email},FDB)}
+async function fbChangePw(m,nw){
+ const u=C.fb.auth.currentUser;if(!u){m("Please sign in again.");return}
+ const pe=pwBad(nw,u.email);if(pe){m("New password: "+pe);return}
+ if(nw!==$("pf").value){m("The new passwords do not match.");return}
+ if(nw===$("pc").value){m("Choose a different password.");return}
+ try{await u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email,$("pc").value));await u.updatePassword(nw);audit("Password changed");m("Password changed.");setTimeout(()=>$("pwd").close(),900)}catch(e){m(fbMsg(e))}}
+function signup(me){
+ const g=$("gate");
+ g.innerHTML='<div class="next"><h3 style="margin-top:0">Sign up</h3><p>Welcome. Choose how you know the admin, then request access. The admin will approve you.</p><label>Your name</label><input id="sn" maxlength="30"><label>I am joining as</label><select id="sg"><option>Family</option><option>Friends</option></select><div class="act"><button id="sb">Request access</button></div><p id="sm"></p><p id="si"><small></small></p></div>';
+ $("sn").value=me.name||"";if(C.fb)$("si").textContent="Your user ID: "+C.uid;
+ C.db.collection("requests").doc(C.uid).onSnapshot(s=>{const d=s.exists?s.data():null;if(d&&d.status==="declined"){$("sm").textContent="Your request was declined by the admin. You can send a new request.";$("sb").style.display="";if(d.group)$("sg").value=d.group;if(d.name)$("sn").value=d.name}else if(s.exists){$("sm").textContent="Your request is waiting for admin approval.";$("sb").style.display="none"}},()=>{});
+ $("sb").onclick=()=>{const nm=$("sn").value.trim();if(!nm)return;
+  C.db.collection("requests").doc(C.uid).set({name:nm,group:$("sg").value,email:C.uname||"",at:Date.now()}).then(()=>{$("sm").textContent="Request sent. This page updates when the admin approves you."}).catch(()=>{$("sm").textContent="Could not send the request. Ask the admin for Contributor access."})}}
+function startCloud(me){
+ if(C.started)return;C.started=true;
+ $("gate").innerHTML="";$("app").hidden=false;$("catsec").style.display=$("bksec").style.display=C.admin?"":"none";
+ $("hp").textContent="Family • Friends • "+(me.name||"You")+" ("+(C.admin?"Admin":C.group)+")";
+ C.db.collection("people").onSnapshot(q=>{
+  const all=q.docs.map(d=>({...d.data(),id:d.id}));
+  C.recs=all.filter(b=>C.admin||b.group===C.group);
+  C.synced={};C.recs.forEach(b=>C.synced[b.id]=JSON.stringify(b));
+  merge();render();renderCats()},()=>{});
+ C.db.collection("members").onSnapshot(q=>{C.mem=q.docs.map(d=>({...d.data(),id:d.id}));merge();render()},()=>{});
+ C.db.collection("profiles").onSnapshot(q=>{C.prof={};q.docs.forEach(d=>{C.prof[d.id]=d.data()});merge();render()},()=>{});
+ C.db.collection("config").doc("cats").onSnapshot(s=>{const d=s.exists?s.data():null;if(d&&d.c){CATS=d.c;try{localStorage.setItem("bdcats",JSON.stringify(CATS))}catch(e){}fillCats();render();renderCats()}},()=>{});
+ if(C.admin){
+  C.db.collection("requests").onSnapshot(q=>{C.req=q.docs.map(d=>({...d.data(),id:d.id}));if(tab==="adm")render()},()=>{})}}
+async function boot(){
+ if(window.FIREBASE_CONFIG&&window.FIREBASE_CONFIG.apiKey){fbBoot();return}
+ const p=(async()=>{try{if(typeof claude!=="undefined"){const r=await Promise.all([claude.use("db"),claude.use("user")]);if(r[0]&&r[1]){const me=await r[1].me();if(me.id)return{db:r[0],user:r[1],me}}}}catch(e){}return null})();
+ localBoot(p)}
+function enter(me,db){const g=$("gate");
+ if(C.admin){C.group="All";startCloud(me);return}
+ db.collection("members").doc(C.uid).onSnapshot(s=>{
+  const m=s.exists?s.data():null;
+  if(m&&m.disabled){$("app").hidden=true;g.innerHTML='<div class="next">Your account has been disabled by the admin.</div>';return}
+  if(m&&m.group){C.group=m.group;C.rights=m.rights||{};if(C.started){$("app").hidden=false;g.innerHTML=""}startCloud(me);merge();render()}else if(!C.started)signup(me)},()=>{g.textContent="Could not load your account."})}
+$("ty").innerHTML="";Object.keys(TYPES).forEach(k=>$("ty").add(new Option(k,k)));
+$("tf").innerHTML='<option value="">All types</option>';Object.keys(TYPES).forEach(k=>$("tf").add(new Option(k,k)));
+$("ty").onchange=()=>{$("rp").checked=(TYPES[$("ty").value]||[0,1])[1]===1};
+$("fsv").onclick=()=>{try{saveS();saveCats()}catch(e){}save();const f=$("fsv");f.textContent="Saved ✓";setTimeout(()=>f.textContent="Save",1500)};
+boot();
+fillCats();render();renderCats();notify();
+</script>
+</body>
+</html>
