@@ -1,0 +1,84 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isAdmin() {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    function hasMember() {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/members/$(request.auth.uid));
+    }
+    function mem() {
+      return get(/databases/$(database)/documents/members/$(request.auth.uid)).data;
+    }
+    function isMember() { return hasMember() && mem().get('disabled', 0) != 1; }
+    function myGroup() { return mem().group; }
+    function right(k) { return mem().get('rights', {}).get(k, 1) != 0; }
+
+    match /admins/{id} {
+      allow read: if signedIn() && (request.auth.uid == id || isAdmin());
+      allow write: if false;   // add the first admin by hand in the console
+    }
+
+    match /members/{id} {
+      allow read: if isAdmin()
+        || (signedIn() && request.auth.uid == id)
+        || (isMember() && right('profiles') && resource.data.group == myGroup());
+      allow write: if isAdmin();
+    }
+
+    match /requests/{id} {
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == id);
+      allow create, update: if isAdmin()
+        || (signedIn() && request.auth.uid == id
+            && !hasMember()
+            && request.resource.data.get('status', 'pending') == 'pending'
+            && request.resource.data.group in ['Family', 'Friends']);
+      allow delete: if isAdmin() || (signedIn() && request.auth.uid == id);
+    }
+
+    match /profiles/{id} {
+      allow read: if isAdmin()
+        || (isMember() && request.auth.uid == id)
+        || (isMember() && right('profiles')
+            && resource.data.group in [myGroup(), 'All']);
+      allow create, update: if isAdmin()
+        || (isMember() && request.auth.uid == id
+            && request.resource.data.uid == id
+            && request.resource.data.group == myGroup()
+            && request.resource.data.get('adm', 0) == 0);
+      allow delete: if isAdmin();
+    }
+
+    match /people/{id} {
+      allow read: if isAdmin()
+        || (isMember() && resource.data.group == myGroup());
+      allow create: if isAdmin()
+        || (isMember() && right('add')
+            && request.resource.data.by == request.auth.uid
+            && request.resource.data.group == myGroup());
+      allow update: if isAdmin()
+        || (isMember() && right('edit')
+            && resource.data.by == request.auth.uid
+            && request.resource.data.by == request.auth.uid
+            && request.resource.data.group == myGroup());
+      allow delete: if isAdmin()
+        || (isMember() && right('del') && resource.data.by == request.auth.uid);
+    }
+
+    match /config/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    match /audit/{id} {
+      allow read: if isAdmin();
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['t', 'u', 'e']);
+      allow update, delete: if false;
+    }
+  }
+}

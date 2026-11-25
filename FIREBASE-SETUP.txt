@@ -1,0 +1,49 @@
+CONNECT THE APP TO ONE CENTRAL DATABASE (free Firebase plan)
+
+After this, a family member living anywhere can register, and the admin
+can approve or decline them from anywhere. Everyone uses the same database.
+
+STEP 1  Create the project
+  Go to console.firebase.google.com > Add project > give it a name > continue
+  (you can turn Google Analytics off).
+
+STEP 2  Turn on sign-in
+  Build > Authentication > Get started > Sign-in method > Email/Password > Enable > Save.
+
+STEP 3  Create the database
+  Build > Firestore Database > Create database > Production mode > pick a region > Enable.
+
+STEP 4  Add the security rules
+  Firestore Database > Rules tab > delete everything > paste the whole text of
+  the file firestore.rules from this folder > Publish.
+  These rules are what keep Family and Friends data apart on the server.
+
+STEP 5  Get your app settings
+  Project settings (gear icon) > Your apps > click the Web icon (</>) > register the app >
+  copy apiKey, authDomain, projectId and appId into www/firebase-config.js
+  (or firebase-config.js if you use the web zip).
+
+STEP 6  Build the app again
+  Upload the folder to GitHub and run "Build APK" again (see README.txt),
+  or upload the web zip files to your online APK maker.
+  The phone needs internet.
+
+STEP 7  Make yourself the admin (one time only)
+  1. Open the app and Register with your own email.
+  2. On the "waiting for approval" screen note "Your user ID".
+  3. In Firebase: Firestore Database > Start collection > name it admins >
+     Document ID = your user ID > add a field  role  (string)  =  admin > Save.
+  4. Close and reopen the app. You now see the Admin tab.
+  5. (Optional) Delete your own entry in the requests collection.
+
+STEP 8  Invite the family
+  Share the APK. They register with their email and choose Family or Friends.
+  You open Admin > Pending sign-ups and press Approve or Decline.
+  The person is let in automatically a moment after you approve.
+
+GOOD TO KNOW
+  - The apiKey in the config file is not a secret. The rules protect the data.
+  - Forgot password: the sign-in screen has a "Forgot password" button that emails a reset link.
+  - Deleting a user in the Admin tab removes their data and access. Their sign-in
+    account stays in Firebase Authentication until you delete it there.
+  - Without these steps the app still works alone on one phone, as before.

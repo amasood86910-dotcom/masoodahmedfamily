@@ -1,0 +1,6 @@
+{
+  "appId": "com.adil.birthdaycalendar",
+  "appName": "Birthday Calendar",
+  "webDir": "www",
+  "server": { "androidScheme": "https" }
+}
